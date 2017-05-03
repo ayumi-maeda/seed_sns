@@ -28,9 +28,9 @@ if(!empty($_POST)){
  if (!empty($fileName)) {
     
     // 空でなければ拡張子を取得
+    // ファイルネームの後ろから３文字分、字を切り出す
     $ext = substr($fileName, -3);
     $ext = strtolower($ext);
-    // ファイルネームの後ろから３文字分、字を切り出す
 
      if ($ext != 'jpg' && $ext != 'gif' && $ext != 'png') {
        $error['picture_path'] = 'type' ;
@@ -100,7 +100,7 @@ if(!empty($_POST)){
         
         <legend>会員登録</legend>
 
-        <form method="post" action="check.php" class="form-horizontal" role="form" enctype="multipart/form-data">
+        <form method="post" action="" class="form-horizontal" role="form" enctype="multipart/form-data">
           <!-- ニックネーム -->
           <div class="form-group">
             <label class="col-sm-4 control-label">ニックネーム</label>
@@ -159,6 +159,9 @@ if(!empty($_POST)){
               <?php if(isset($error['picture_path']) && $error['picture_path'] == 'type'){ ?>
               <p class="error">*写真は「.gif」 「.jpg」「.png」の画像を指定してください</p>
               <?php } ?>
+              <?php if (!empty($error)): ?>
+                <p class="error">*恐れ入りますが、画像を改めて指定してください</p>
+               <?php endif; ?> 
             </div>
           </div>
           <input type="submit" class="btn btn-default" value="確認画面へ">
