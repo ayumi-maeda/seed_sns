@@ -3,6 +3,8 @@
 
  // dbconnect.phpを読み込む
  require('../dbconnect.php');
+
+
  // requireと（）の間はスペース空けない！
 
 // セッションにデータがなかったらindex.phpへ移動（遷移）する
@@ -17,15 +19,7 @@
  $picture_path =  htmlspecialchars($_SESSION['join']['picture_path'],ENT_QUOTES,'UTF-8');
  // DB登録処理
  if (!empty($_POST)) {
-   $sql = sprintf('INSERT INTO `members` (`nick_name`, `email`, `password`, `picture_path`, `created`, `modified`) VALUES ("%s", "%s", "%s", "%s", now(), now());',
-    mysqli_real_escape_string($db,$_SESSION['join']['nick_name']),
-    mysqli_real_escape_string($db,$_SESSION['join']['email']),
-    mysqli_real_escape_string($db,$_SESSION['join']['password']),
-    mysqli_real_escape_string($db,$_SESSION['join']['picture_path']));
-
-   mysqli_query($db,$sql) or die(mysqli_error($db));
-   header("Location: thanks.php");
-   exit();
+   
  }
  
 ?>
