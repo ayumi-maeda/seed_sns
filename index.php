@@ -51,7 +51,7 @@
 
 
     
-
+       
   // DB登録処理
  if (!empty($_POST)) {
       $tweet = htmlspecialchars($_POST['tweet'],ENT_QUOTES,'UTF-8');
@@ -65,12 +65,48 @@
     
 
    mysqli_query($db,$sql) or die(mysqli_error($db));
+
+   // $stmt = $dbh->prepare($sql);
+   //  $stmt->execute();
    // これをつけると、再読み込みでpost送信が発生しなくなる
    header("Location: index.php");
    exit();
- }
+    }
+
+   // 投稿を取得する（if分の外側に書く）
+   // $sql = 'SELECT * FROM `tweets`;'; 
+    $sql = 'SELECT `members`.`nick_name`,`members`.`picture_path`,`tweets`.* FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id`';
+    $tweets = mysqli_query($db,$sql) or die(mysqli_error($db));
+    // $time = mysqli_query($db,$sql) or die(mysqli_error($db));
+
+    $tweets_array = array();
+    while ($tweet = mysqli_fetch_assoc($tweets)) {
+      $tweets_array[] = $tweet;
+    }
+
+
+
+ //     $rec = $tweet->fetch(PDO::FETCH_ASSOC);
+ //     // そのSQLの中を連想配列で取得するよ。って事。
+ //     //  カラム名をキーとする連想配列で取得する
+ //     // PDOは「PHP Data Objects」の頭文字をとった名称
+  //   if($rec == false){
+  //        break;
+  //    }
+  //    // echo $rec['nickname'];
+  //    $post_datas[] = $rec;
+
+  //   }
+  
+  // // ３．データベースを切断する
+  // $dbh = null;
+
+ 
+
+
     
  ?>
+  
 <!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -135,25 +171,29 @@
       </div>
 
       <div class="col-md-8 content-margin-top">
-        <!-- <?php 
-          // foreach ($post_datas as $post_each) { ?> -->
-              
-        <div class="msg">
-          <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
+         <?php 
+           foreach ($tweets_array as $tweet_each) { ?>
+            <div class="msg">
+           <img src="member_picture/<?php echo $tweet_each['picture_path']; ?>"
+           width="48" height="48">
           <p>
-            つぶやき４<span class="name"> (Seed kun) </span>
+            <?php echo $tweet_each['tweet']; ?>
+           <span class="name"> <?php echo $tweet_each['nick_name']; ?> </span>
             [<a href="#">Re</a>]
           </p>
           <p class="day">
             <a href="view.html">
-              2016-01-28 18:04
+              <?php echo $tweet_each['created']; ?>
             </a>
             [<a href="#" style="color: #00994C;">編集</a>]
             [<a href="#" style="color: #F33;">削除</a>]
           </p>
         </div>
+         <?php } ?>
+        </div>
          
-        <div class="msg">
+         
+        <!-- <div class="msg">
           <img src="http://c85c7a.medialib.glogster.com/taniaarca/media/71/71c8671f98761a43f6f50a282e20f0b82bdb1f8c/blog-images-1349202732-fondo-steve-jobs-ipad.jpg" width="48" height="48">
           <p>
             つぶやき３<span class="name"> (Seed kun) </span>
@@ -195,11 +235,11 @@
             [<a href="#" style="color: #F33;">削除</a>]
           </p>
         </div>
-      </div>
+      </div> -->
 
-    </div>
-  </div>
-
+   <!--  </div>
+  </div> -->
+ 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="assets/js/jquery-3.1.1.js"></script>
     <script src="assets/js/jquery-migrate-1.4.1.js"></script>
