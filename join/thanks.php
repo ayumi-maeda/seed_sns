@@ -1,4 +1,5 @@
 <?php 
+session_start();
   // 会員登録が済んだのでSESSION変数に保存していた入力値を削除
 unset($_SESSION['join']);
 ?>

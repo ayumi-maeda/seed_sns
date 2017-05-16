@@ -54,9 +54,13 @@
        
   // DB登録処理
  if (!empty($_POST)) {
-      $tweet = htmlspecialchars($_POST['tweet'],ENT_QUOTES,'UTF-8');
+      $tweet = h($_POST['tweet']);
       $login_member_id = $_SESSION['login_member_id'];
-      $reply_tweet_id = 0;
+      if(isset($_POST['reply_tweet_id'])){
+          $reply_tweet_id = $_POST['reply_tweet_id'];    
+      }else{
+          $reply_tweet_id = 0;
+        }
 
       $sql = sprintf('INSERT INTO `tweets` (`tweet`, `member_id`, `reply_tweet_id`,`created`, `modified`) VALUES ("%s", "%s", "%s", now(), now());',
     mysqli_real_escape_string($db,$tweet),
@@ -75,7 +79,7 @@
 
    // 投稿を取得する（if分の外側に書く）
    // $sql = 'SELECT * FROM `tweets`;'; 
-    $sql = 'SELECT `members`.`nick_name`,`members`.`picture_path`,`tweets`.* FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id`';
+    $sql = 'SELECT `members`.`nick_name`,`members`.`picture_path`,`tweets`.* FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0';
     $tweets = mysqli_query($db,$sql) or die(mysqli_error($db));
     // $time = mysqli_query($db,$sql) or die(mysqli_error($db));
 
@@ -84,27 +88,25 @@
       $tweets_array[] = $tweet;
     }
 
-
-
- //     $rec = $tweet->fetch(PDO::FETCH_ASSOC);
- //     // そのSQLの中を連想配列で取得するよ。って事。
- //     //  カラム名をキーとする連想配列で取得する
- //     // PDOは「PHP Data Objects」の頭文字をとった名称
-  //   if($rec == false){
-  //        break;
-  //    }
-  //    // echo $rec['nickname'];
-  //    $post_datas[] = $rec;
-
-  //   }
-  
-  // // ３．データベースを切断する
-  // $dbh = null;
-
- 
-
-
+    // 返信の場合 
+    if (isset($_REQUEST['res'])) {
+         // 返信元のデータ（つぶやきとニックネーム）を取得する
+         $sql = 'SELECT `tweets`.`tweet`,`members`.`nick_name` FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id` WHERE `tweet_id` ='.$_REQUEST['res'];
+    // sql実行の結果、もらったデータを代入して入れている。↓　or die はエラーが出たらその処理はストップ
+         $reply = mysqli_query($db,$sql) or die(mysqli_error($db));
+         $reply_table = mysqli_fetch_assoc($reply);
+         // [@ニックネーム　つぶやき]　という文字列をセット
+         $reply_post = '@'.$reply_table['nick_name'].' '.$reply_table['tweet'];
+    }
     
+    // $input_value:　引数
+    // h: 関数名
+    // return oo :戻り値
+    function h($input_value){
+      
+      return htmlspecialchars($input_value,ENT_QUOTES,'UTF-8');
+       
+    }
  ?>
   
 <!DOCTYPE html>
@@ -157,7 +159,13 @@
             <div class="form-group">
               <label class="col-sm-4 control-label">つぶやき</label>
               <div class="col-sm-8">
+              <?php if (isset($reply_post)){ ?>
+                <textarea name="tweet" cols="50" rows="5" class="form-control" placeholder="例：Hello World!"><?php echo $reply_post; ?></textarea>
+              <input type="hidden" name="reply_tweet_id" value="<?php echo $_REQUEST['res']; ?>">  
+              <?php }else{ ?>
                 <textarea name="tweet" cols="50" rows="5" class="form-control" placeholder="例：Hello World!"></textarea>
+              <?php } ?>
+              
               </div>
             </div>
           <ul class="paging">
@@ -171,6 +179,11 @@
       </div>
 
       <div class="col-md-8 content-margin-top">
+      <!-- 検索ボックス -->
+      <form action="" method="get" class="form-horizontal">
+        <input type="text" name="search_word">
+        <input type="submit" class="btn btn-success btn-xs" value="検索">
+      </form>
          <?php 
            foreach ($tweets_array as $tweet_each) { ?>
             <div class="msg">
@@ -179,14 +192,20 @@
           <p>
             <?php echo $tweet_each['tweet']; ?>
            <span class="name"> <?php echo $tweet_each['nick_name']; ?> </span>
-            [<a href="#">Re</a>]
+            [<a href="index.php?res=<?php echo $tweet_each['tweet_id']; ?>">Re</a>]
           </p>
           <p class="day">
-            <a href="view.html">
+            <a href="view.php?tweet_id=<?php echo $tweet_each['tweet_id']; ?>">
               <?php echo $tweet_each['created']; ?>
             </a>
-            [<a href="#" style="color: #00994C;">編集</a>]
-            [<a href="#" style="color: #F33;">削除</a>]
+            <?php if ($tweet_each['reply_tweet_id'] > 0) { ?>
+            | <a href="view.php?tweet_id=<?php echo $tweet_each['reply_tweet_id']; ?>">返信元のつぶやき</a>
+           <?php } ?>
+           <?php  if($_SESSION['login_member_id'] == $tweet_each['member_id']){ ?>
+            [<a href="edit.php?tweet_id=<?php echo $tweet_each['tweet_id']; ?>" style="color: #00994C;">編集</a>]
+         
+            [<a href="delete.php?tweet_id=<?php echo $tweet_each['tweet_id']; ?>" style="color: #F33;">削除</a>]
+            <?php } ?>
           </p>
         </div>
          <?php } ?>
