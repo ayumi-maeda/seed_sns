@@ -16,27 +16,7 @@
     }
 
 
-    // $dsn = 'mysql:dbname=seed_sns;host=localhost';
-    // $user = 'root';
-    //  $password='';
-
-    //  $dbh = new PDO($dsn, $user, $password);
-    //    $dbh->query('SET NAMES utf8');
-
-       // $post_datas = array();
- // POST送信されたらINSERT分を実行
-  // if(!empty($_POST['tweet'])){
-  //   $member_id = htmlspecialchars($_SESSION['login_member_id']);
-  //   $tweet = htmlspecialchars($_POST['tweet']);
-    // $reply_tweet_id = 0; 
-    // ２．SQL文を実行する
-    // $sql = 'INSERT INTO `tweets`(`member_id`, `tweet`, `created`,`modified`) VALUES ("'.$member_id.'","'.$tweet.'",now(), now());' ;
-    // var_dump($sql);
-  
-  // now()はsql関数のため、””で囲まない
-  //   $stmt = $dbh->prepare($sql);
-  //   $stmt->execute();
-  // // }
+    
    require('dbconnect.php');
 
    // ログインしている人の情報を取得（名前を表示）
@@ -77,9 +57,42 @@
    exit();
     }
 
+    // ページング処理
+
+    // 0.ページ番号取得（ある場合はGET送信、ない場合は１ページ目と認識する）
+    $page = '';
+       //GET送信されたら、GET送信されてきたページ番号を取得
+       if(isset($_GET['page'])){
+        $page = $_GET['page'];
+       } 
+
+       // ない時は１ページ目
+       if($page == ''){
+        $page = 1;
+       }
+    
+
+    // 1.表示する正しいページの数値を設定(MIN) (-10とかにならないように)
+       $page = max($page,1);//max()は中の数字を比較して大きい方を取りってくれる関数。
+
+    // 2.必要なページ数を計算
+       // 1ページに表示する行数
+       $row = 5;
+       $sql = 'SELECT COUNT(*) as cnt FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 ORDER BY `tweets`.`created` DESC';
+       $record_cnt = mysqli_query($db,$sql) or die(mysqli_error($db));
+
+       $table_cnt = mysqli_fetch_assoc($record_cnt);
+
+       //  ceil() : 小数点を切り上げする関数
+       $maxPage = ceil($table_cnt['cnt'] / $row);
+    // 3.表示する正しいページ数の数値を設定（MAX）
+       $page = min($page,$maxPage);
+
+    // 4.ページに表示する件数だけ取得
+       $start = ($page -1) * $row;
    // 投稿を取得する（if分の外側に書く）
    // $sql = 'SELECT * FROM `tweets`;'; 
-    $sql = 'SELECT `members`.`nick_name`,`members`.`picture_path`,`tweets`.* FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0';
+    $sql = sprintf('SELECT `members`.`nick_name`,`members`.`picture_path`,`tweets`.* FROM `tweets` INNER JOIN `members` on `tweets`.`member_id` = `members`.`member_id` WHERE `delete_flag`=0 ORDER BY `created` DESC LIMIT %d,%d',$start,$row);
     $tweets = mysqli_query($db,$sql) or die(mysqli_error($db));
     // $time = mysqli_query($db,$sql) or die(mysqli_error($db));
 
@@ -171,9 +184,21 @@
           <ul class="paging">
             <input type="submit" class="btn btn-info" value="つぶやく">
                 &nbsp;&nbsp;&nbsp;&nbsp;
-                <li><a href="index.html" class="btn btn-default">前</a></li>
+                <li>
+                <?php if($page > 1){?>
+                <a href="index.php?page=<?php echo $page -1; ?>" class="btn btn-default">前</a>
+                <?php }else{ ?>
+                 前
+                 <?php } ?>
+                </li>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
-                <li><a href="index.html" class="btn btn-default">次</a></li>
+                <li>
+                <?php if($page >1){ ?>
+                <a href="index.php?page=<? echo $page +1; ?>" class="btn btn-default">次</a>
+                <?php }else{ ?>
+                次
+                <?php } ?>
+                </li>
           </ul>
         </form>
       </div>
