@@ -13,17 +13,17 @@
    exit();
  }
 
- $nick_name = htmlspecialchars($_SESSION['join']['nick_name'],ENT_QUOTES,'UTF-8');
+ $name = htmlspecialchars($_SESSION['join']['name'],ENT_QUOTES,'UTF-8');
  $email = htmlspecialchars($_SESSION['join']['email'],ENT_QUOTES,'UTF-8');
 
- $picture_path =  htmlspecialchars($_SESSION['join']['picture_path'],ENT_QUOTES,'UTF-8');
+ $avatar_id =  htmlspecialchars($_SESSION['join']['avatar_id'],ENT_QUOTES,'UTF-8');
  // DB登録処理
  if (!empty($_POST)) {
-  $sql = sprintf('INSERT INTO `members`(`nick_name`,`email`, `password`, `picture_path`, `created`, `modified`) VALUES("%s", "%s", "%s","%s", now(),now());',
-    mysqli_real_escape_string($db,$_SESSION['join']['nick_name']),
+  $sql = sprintf('INSERT INTO `users`(`name`,`email`, `password`, `avatar_id`, `created`, `modified`) VALUES("%s", "%s", "%s","%s", now(),now());',
+    mysqli_real_escape_string($db,$_SESSION['join']['name']),
     mysqli_real_escape_string($db,$_SESSION['join']['email']),
     mysqli_real_escape_string($db,sha1($_SESSION['join']['password'])),
-    mysqli_real_escape_string($db,$_SESSION['join']['picture_path'])
+    mysqli_real_escape_string($db,$_SESSION['join'][''])
     );
   mysqli_query($db,$sql) or die(mysqli_error($db));
   header("Location: thanks.php");
@@ -87,7 +87,7 @@
                 <tr>
                   <td><div class="text-center">ニックネーム</div></td>
                   <td><div class="text-center">
-                    <?php echo $nick_name; ?>
+                    <?php echo $name; ?>
                   </div></td>
                 </tr>
                 <tr>
@@ -102,7 +102,7 @@
                 </tr>
                 <tr>
                   <td><div class="text-center">プロフィール画像</div></td>
-                  <td><div class="text-center"><img src="../member_picture/<?php echo $picture_path; ?>" <?php echo  $_SESSION['join']['picture_path']; ?> width="100" height="100"></div></td>
+                  <td><div class="text-center"><img src="../member_picture/<?php echo $picture_path; ?>" <?php echo  $_SESSION['join']['avatar_id']; ?> width="100" height="100"></div></td>
                 </tr>
               </tbody>
             </table>
